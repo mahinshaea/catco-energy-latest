@@ -1,0 +1,56 @@
+#panel-scene {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: clamp(19rem, 39vw, 39rem);
+  pointer-events: none;
+}
+#panel-scene::before {
+  content: "";
+  position: absolute;
+  inset: 68% 11% 11%;
+  background: radial-gradient(ellipse, rgb(23 49 39 / 0.27), transparent 65%);
+  transform: rotate(-6deg);
+  filter: blur(8px);
+}
+/* The same composition is available before WebGL loads and without JavaScript. */
+#panel-scene::after {
+  content: "";
+  position: absolute;
+  left: 16%;
+  top: 17%;
+  width: 68%;
+  height: 59%;
+  background:
+    linear-gradient(118deg, transparent 14%, #b7dae22e 40%, transparent 65%),
+    repeating-linear-gradient(0deg, transparent 0 1.85%, #a1c4d33b 1.86% 2%),
+    repeating-linear-gradient(90deg, transparent 0 8.12%, #a4bcc5 8.13% 8.33%),
+    repeating-linear-gradient(0deg, transparent 0 9.62%, #bbc8c6 9.63% 10%),
+    linear-gradient(120deg, #294258, #172738 62%, #243c50);
+  border: clamp(3px, 0.35vw, 6px) solid #bec7c6;
+  border-radius: 2px;
+  box-shadow:
+    2px 3px #5c6b70,
+    3px 5px #354244,
+    4px 6px #7b8889;
+  transform: perspective(750px) rotateX(43deg) rotateY(-18deg) rotateZ(-12deg);
+}
+#panel-scene canvas {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+#panel-scene[data-rendered] canvas {
+  opacity: 1;
+}
+#panel-scene[data-rendered]::after {
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  #panel-scene canvas {
+    transition: none;
+  }
+}
