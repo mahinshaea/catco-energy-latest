@@ -1,0 +1,23 @@
+{
+  "name": "catco-energy-latest",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-03-01",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/enquiries"
+    ]
+  },
+  "d1_databases": [
+    {
+      "binding": "CATCO_INBOX"
+    }
+  ],
+  "vars": {
+    "CATCO_PULL_VERIFIER": "a09c70011391e002212bd0eb2953a216457dbbeecf228f00de56da49aa6e2423"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

@@ -6,12 +6,13 @@ async function digest(value) {
   return Array.from(new Uint8Array(result), n => n.toString(16).padStart(2,"0")).join("");
 }
 export async function onRequest({request, env}) {
-  if (!env.CATCO_INBOX || !env.CATCO_PULL_TOKEN || env.CATCO_PULL_TOKEN.length < 32) return response({error:"Intake is not configured"},503);
+  const verifier=env.CATCO_PULL_VERIFIER || (env.CATCO_PULL_TOKEN?.length>=32 ? await digest("Bearer "+env.CATCO_PULL_TOKEN) : "");
+  if (!env.CATCO_INBOX || !/^[a-f0-9]{64}$/.test(verifier)) return response({error:"Intake is not configured"},503);
   const db=env.CATCO_INBOX;
   const now=Math.floor(Date.now()/1000);
   if (request.method === "GET" || request.method === "PATCH") {
     const header=request.headers.get("Authorization") || "";
-    if ((await digest(header)) !== (await digest("Bearer "+env.CATCO_PULL_TOKEN))) return response({error:"Unauthorized"},401);
+    if ((await digest(header)) !== verifier) return response({error:"Unauthorized"},401);
     if(request.method === "GET"){
       const rows=await db.prepare("SELECT id,payload FROM enquiries WHERE acknowledged IS NULL ORDER BY submitted,id LIMIT 25").all();
       return response({items:rows.results.map(row=>({...JSON.parse(row.payload),event_id:row.id}))});
@@ -39,7 +40,7 @@ export async function onRequest({request, env}) {
   if(!data.name || data.name.length>160 || data.email.length>254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email) ||
     !/^\+?[\d\s().-]+$/.test(data.phone) || !/^\d{7,15}$/.test(data.phone.replace(/\D/g,"")) || data.phone.length>30 ||
     !products.has(data.interest) || !data.message || data.message.length>5000)return response({error:"Check the enquiry fields"},400);
-  const hash=await digest(env.CATCO_PULL_TOKEN+"|"+(request.headers.get("CF-Connecting-IP")||"local"));
+  const hash=await digest(Math.floor(now/86400)+"|"+(request.headers.get("CF-Connecting-IP")||"local"));
   const result=await db.prepare("INSERT OR IGNORE INTO enquiries(id,payload,submitted,origin_hash) SELECT ?,?,?,? WHERE (SELECT count(*) FROM enquiries WHERE origin_hash=? AND submitted>?)<10").bind(id,JSON.stringify(data),now,hash,hash,now-3600).run();
   if(!result.meta.changes && !(await db.prepare("SELECT 1 FROM enquiries WHERE id=? AND origin_hash=?").bind(id,hash).first()))return response({error:"Please try later"},429);
   return response({received:true},201);
