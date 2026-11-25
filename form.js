@@ -12,6 +12,7 @@
     message: "Tell us about your energy needs.",
   };
   form.noValidate = true;
+  let receipt = crypto.randomUUID();
 
   function validate(field) {
     const value = field.value.trim();
@@ -62,14 +63,16 @@
     button.textContent = "Submitting…";
     status.textContent = "";
     const body = new URLSearchParams(new FormData(form));
+    body.set("submission_id",receipt);
     try {
-      const response = await fetch(form.action, {
+      const response = await fetch("/api/enquiries", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body,
       });
-      if (!response.ok) throw new Error("Submission failed");
+      if (!response.ok || (await response.json()).received !== true) throw new Error("Submission failed");
       status.textContent = "Thank you. Your enquiry has been submitted.";
+      receipt = crypto.randomUUID();
       form.reset();
     } catch {
       status.setAttribute("data-error", "");
