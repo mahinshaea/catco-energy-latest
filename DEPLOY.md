@@ -1,4 +1,8 @@
-# Deploying CATCO on Netlify
+# Deploying CATCO on Cloudflare
+
+The production project is the Cloudflare Worker `catco-energy-latest`. Git pushes to its configured production branch deploy the Worker and the static files in `dist`. Keep the root and dist copies of the site aligned. See [CRM intake](CRM-INTEGRATION.md) for the D1 binding, receipt lifecycle and collector configuration.
+
+## Previous Netlify configuration
 
 Use this directory as the Netlify project base. Publish the current directory with an empty build command. The site consists of prebuilt static files.
 

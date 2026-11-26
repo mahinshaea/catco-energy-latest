@@ -43,5 +43,8 @@ export async function onRequest({request, env}) {
   const hash=await digest(Math.floor(now/86400)+"|"+(request.headers.get("CF-Connecting-IP")||"local"));
   const result=await db.prepare("INSERT OR IGNORE INTO enquiries(id,payload,submitted,origin_hash) SELECT ?,?,?,? WHERE (SELECT count(*) FROM enquiries WHERE origin_hash=? AND submitted>?)<10").bind(id,JSON.stringify(data),now,hash,hash,now-3600).run();
   if(!result.meta.changes && !(await db.prepare("SELECT 1 FROM enquiries WHERE id=? AND origin_hash=?").bind(id,hash).first()))return response({error:"Please try later"},429);
+  if(request.headers.get("Accept")?.includes("text/html")){
+    return new Response('<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Enquiry received | CATCO Energy</title><main><h1>Thank you for your enquiry</h1><p>The CATCO Energy team has received your details.</p><a href="/">Return to CATCO Energy</a></main></html>',{status:201,headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"}});
+  }
   return response({received:true},201);
 }
